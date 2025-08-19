@@ -32,17 +32,13 @@
 </head>
 
 <body>
-    <header>
-        <!-- Navigation bar or header content -->
-    </header>
+    @include('layouts.header')
 
     <main>
         @yield('content')
     </main>
 
-    <footer>
-        <!-- Footer content -->
-    </footer>
+   @include('layouts.footer')
     <!-- Vendor JS Files -->
 
     <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
