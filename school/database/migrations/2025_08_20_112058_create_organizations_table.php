@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('organizations', function (Blueprint $table) {
             $table->id();
+            $table->string('title', 255);
+            $table->string('po_box', 100)->nullable();
+            $table->text('address')->nullable();
+            $table->text('opening_hours')->nullable();
+            $table->string('map_url', 8024)->nullable()->comment('Embed code for a map');
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }
