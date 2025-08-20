@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ContentTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,15 +18,21 @@ class ContentBlock extends Model implements HasMedia
         'section_id',
         'type',
         'title',
+        'slug', 
+        'icon',
         'subtitle',
         'short_description',
         'content',
+        'list_items',
+        'video_url',
         'metadata',
         'display_order',
         'is_active',
     ];
 
     protected $casts = [
+        'type' => ContentTypeEnum::class,
+        'list_items' => 'array',
         'metadata' => 'array',
         'display_order' => 'integer',
         'is_active' => 'boolean',
@@ -63,9 +70,6 @@ class ContentBlock extends Model implements HasMedia
                     ->height(200)
                     ->sharpen(10);
             });
-
-        $this->addMediaCollection('videos')
-            ->acceptsMimeTypes(['video/mp4', 'video/webm', 'video/ogg']);
     }
 
     // Scopes
@@ -114,4 +118,5 @@ class ContentBlock extends Model implements HasMedia
     {
         return $this->type === 'gallery';
     }
+    
 }
