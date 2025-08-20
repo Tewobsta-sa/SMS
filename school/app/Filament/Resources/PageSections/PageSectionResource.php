@@ -16,45 +16,41 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class PageSectionResource extends Resource
-{
+class PageSectionResource extends Resource {
     protected static ?string $model = PageSection::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+   protected static string|\UnitEnum|null $navigationGroup = 'Pages';
+
     protected static ?string $recordTitleAttribute = 'PageSection';
 
-    public static function form(Schema $schema): Schema
-    {
-        return PageSectionForm::configure($schema);
+    public static function form( Schema $schema ): Schema {
+        return PageSectionForm::configure( $schema );
     }
 
-    public static function table(Table $table): Table
-    {
-        return PageSectionsTable::configure($table);
+    public static function table( Table $table ): Table {
+        return PageSectionsTable::configure( $table );
     }
 
-    public static function getRelations(): array
-    {
+    public static function getRelations(): array {
         return [
             //
         ];
     }
 
-    public static function getPages(): array
-    {
+    public static function getPages(): array {
         return [
-            'index' => ListPageSections::route('/'),
-            'create' => CreatePageSection::route('/create'),
-            'edit' => EditPageSection::route('/{record}/edit'),
+            'index' => ListPageSections::route( '/' ),
+            'create' => CreatePageSection::route( '/create' ),
+            'edit' => EditPageSection::route( '/{record}/edit' ),
         ];
     }
 
-    public static function getRecordRouteBindingEloquentQuery(): Builder
-    {
+    public static function getRecordRouteBindingEloquentQuery(): Builder {
         return parent::getRecordRouteBindingEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        ->withoutGlobalScopes( [
+            SoftDeletingScope::class,
+        ] );
     }
 }
