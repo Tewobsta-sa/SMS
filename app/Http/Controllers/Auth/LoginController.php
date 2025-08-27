@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use App\Http\Resources\UserResource;
 
 class LoginController extends Controller
 {
@@ -34,7 +35,7 @@ class LoginController extends Controller
             // Return a response with the user and token
             return response()->json([
                 'message' => 'Login successful',
-                'user' => $user,
+                'user' => new UserResource($user),
                 'token' => $token,
             ]);
         }
@@ -43,10 +44,14 @@ class LoginController extends Controller
             'email' => ['The provided credentials do not match our records.'],
         ]);
     }
-	public function logout(Request $request)
-	{
-    	$request->user()->tokens()->delete();
 
-    	return response()->json(['message' => 'Successfully logged out']);
-	}
+    /**
+     * Log the user out of the application.
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json(['message' => 'Successfully logged out']);
+    }
 }

@@ -21,7 +21,7 @@ class PasswordResetController extends Controller
 
         return $response == Password::RESET_LINK_SENT
             ? response()->json(['message' => 'Password reset link sent successfully.'])
-            : response()->json(['message' => 'Failed to send password reset link.'], 500);
+            : response()->json(['message' => 'Failed to send password reset link.'], 422);
     }
 
     public function reset(Request $request)
