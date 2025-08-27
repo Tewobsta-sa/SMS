@@ -20,7 +20,7 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials , 'is_active' => true)) {
             $user = Auth::user();
 
             // Track last login time and IP

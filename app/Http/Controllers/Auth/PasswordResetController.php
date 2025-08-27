@@ -11,19 +11,36 @@ use App\Models\User;
 
 class PasswordResetController extends Controller
 {
+    /**
+     * Send a password reset link to the given user.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function sendResetLinkEmail(Request $request)
     {
         $request->validate(['email' => 'required|email']);
 
-        $response = Password::broker()->sendResetLink(
-            $request->only('email')
-        );
+        // Find the user and check if they are active
+        $user = User::where('email', $request->email)->first();
 
-        return $response == Password::RESET_LINK_SENT
-            ? response()->json(['message' => 'Password reset link sent successfully.'])
-            : response()->json(['message' => 'Failed to send password reset link.'], 422);
+        if ($user && $user->is_active) {
+            // Only send the link if the user is active
+            Password::broker()->sendResetLink(
+                $request->only('email')
+            );
+        }
+
+        // Always return a generic success message for security reasons
+        return response()->json(['message' => 'Password reset link sent successfully.']);
     }
 
+    /**
+     * Reset the given user's password.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function reset(Request $request)
     {
         $request->validate([
