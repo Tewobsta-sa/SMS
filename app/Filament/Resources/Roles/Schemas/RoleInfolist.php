@@ -13,6 +13,9 @@ class RoleInfolist
             ->components([
                 TextEntry::make('name'),
                 TextEntry::make('guard_name'),
+                TextEntry::make('permissions.name')
+                    ->badge()
+                    ->separator(','),
                 TextEntry::make('created_at')
                     ->dateTime(),
                 TextEntry::make('updated_at')
