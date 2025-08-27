@@ -1,0 +1,14 @@
+.env
+/.env
+/vendor
+/node_modules
+/public/storage
+/storage/*.key
+/storage/debugbar
+/storage/framework
+/storage/logs
+/storage/permissions
+/storage/roles
+/storage/telescope
+
+  
