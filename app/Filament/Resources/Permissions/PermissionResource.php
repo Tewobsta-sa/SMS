@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Filament\Resources\Permissions;
-use Spatie\Permission\Models\Permission; 
+
 use App\Filament\Resources\Permissions\Pages\CreatePermission;
 use App\Filament\Resources\Permissions\Pages\EditPermission;
 use App\Filament\Resources\Permissions\Pages\ListPermissions;
@@ -9,13 +9,12 @@ use App\Filament\Resources\Permissions\Pages\ViewPermission;
 use App\Filament\Resources\Permissions\Schemas\PermissionForm;
 use App\Filament\Resources\Permissions\Schemas\PermissionInfolist;
 use App\Filament\Resources\Permissions\Tables\PermissionsTable;
+use Spatie\Permission\Models\Permission;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PermissionResource extends Resource
 {
@@ -55,13 +54,5 @@ class PermissionResource extends Resource
             'view' => ViewPermission::route('/{record}'),
             'edit' => EditPermission::route('/{record}/edit'),
         ];
-    }
-
-    public static function getRecordRouteBindingEloquentQuery(): Builder
-    {
-        return parent::getRecordRouteBindingEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
     }
 }

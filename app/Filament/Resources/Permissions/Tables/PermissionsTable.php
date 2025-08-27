@@ -5,10 +5,7 @@ namespace App\Filament\Resources\Permissions\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class PermissionsTable
@@ -20,7 +17,7 @@ class PermissionsTable
                 //
             ])
             ->filters([
-                TrashedFilter::make(),
+                //
             ])
             ->recordActions([
                 ViewAction::make(),
@@ -29,8 +26,6 @@ class PermissionsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
                 ]),
             ]);
     }
