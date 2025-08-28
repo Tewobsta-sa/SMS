@@ -7,7 +7,7 @@ use App\Filament\Resources\Schoolclasses\Pages\EditSchoolclass;
 use App\Filament\Resources\Schoolclasses\Pages\ListSchoolclasses;
 use App\Filament\Resources\Schoolclasses\Schemas\SchoolclassForm;
 use App\Filament\Resources\Schoolclasses\Tables\SchoolclassesTable;
-use App\Models\Schoolclass;
+use App\Models\SchoolClass;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -18,11 +18,11 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SchoolclassResource extends Resource
 {
-    protected static ?string $model = Schoolclass::class;
+    protected static ?string $model = SchoolClass::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'SchoolClass';
+    protected static ?string $recordTitleAttribute = 'School Class';
 
     public static function form(Schema $schema): Schema
     {
