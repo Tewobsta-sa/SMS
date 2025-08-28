@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\HasUserStamps;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 class SchoolClass extends Model {
-    use HasUserStamps;
+    use HasUserStamps,SoftDeletes;
     protected $fillable = [
         'school_id',
         'name',
