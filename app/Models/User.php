@@ -43,6 +43,8 @@ class User extends Authenticatable implements CanResetPassword
         'remember_token',
     ];
 
+    protected $table = 'users';
+
     /**
      * Get the attributes that should be cast.
      *
@@ -65,6 +67,10 @@ class User extends Authenticatable implements CanResetPassword
     {
         return $this->belongsTo(School::class);
     }
+
+    public function teacher(){ return $this->hasOne(\App\Models\Teacher::class); }
+    public function student(){ return $this->hasOne(\App\Models\Student::class); }
+    public function parentModel(){ return $this->hasOne(\App\Models\ParentModel::class); }
     
     /**
      * Send the password reset notification.
