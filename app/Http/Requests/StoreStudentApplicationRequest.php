@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Enums\Gender;
 
 class StoreStudentApplicationRequest extends FormRequest
 {
@@ -18,7 +20,7 @@ class StoreStudentApplicationRequest extends FormRequest
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'date_of_birth' => 'required|date|before:today',
-            'gender' => 'required|string|in:Male,Female,Other',
+            'gender' => ['required', 'string', Rule::in(array_column(Gender::cases(), 'value'))],
             'address' => 'required|string',
             'parent_name' => 'required|string|max:255',
             'parent_relation' => 'required|string|in:Father,Mother,Guardian',

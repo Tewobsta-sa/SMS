@@ -7,6 +7,7 @@ use App\Models\StudentApplication;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class StudentApplicationController extends Controller
 {
@@ -18,24 +19,14 @@ class StudentApplicationController extends Controller
         DB::beginTransaction();
 
         try {
-            $application = new StudentApplication();
-            $application->school_id = $request->input('school_id');
-            $application->first_name = $request->input('first_name');
-            $application->last_name = $request->input('last_name');
-            $application->date_of_birth = $request->input('date_of_birth');
-            $application->gender = $request->input('gender');
-            $application->address = $request->input('address');
-            $application->parent_name = $request->input('parent_name');
-            $application->parent_relation = $request->input('parent_relation');
-            $application->parent_phone = $request->input('parent_phone');
-            $application->parent_email = $request->input('parent_email');
-            $application->occupation = $request->input('occupation');
-            $application->document_id = $request->input('document_id');
-            $application->parent_id = auth()->user()->id;
-            $application->status = 'pending';
-            $application->submitted_at = now();
-
-            $application->save();
+            $application = StudentApplication::create(array_merge(
+                $request->validated(),
+                [
+                    'parent_id' => auth()->user()->id,
+                    'status' => 'pending',
+                    'submitted_at' => now(),
+                ]
+            ));
 
             DB::commit();
 
@@ -47,7 +38,9 @@ class StudentApplicationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return response()->json(['message' => 'Failed to submit application.', 'error' => $e->getMessage()], 500);
+            Log::error('Student application submission failed: ' . $e->getMessage());
+
+            return response()->json(['message' => 'Failed to submit application.'], 500);
         }
     }
 
