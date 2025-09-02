@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\StudentApplicationController;
 
 // Public routes for authentication and password reset
 Route::post('/login', [LoginController::class, 'login']);
@@ -29,5 +30,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/student-dashboard', function () {
             return response()->json(['message' => 'Welcome to the student dashboard!']);
         });
+    });
+
+    Route::middleware('role:parent')->group(function () {
+        Route::post('/student-applications', [StudentApplicationController::class, 'store']);
+        Route::get('/student-applications', [StudentApplicationController::class, 'index']);
+        Route::get('/student-applications/{id}', [StudentApplicationController::class, 'show']);
     });
 });
