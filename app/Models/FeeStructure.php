@@ -11,7 +11,7 @@ class FeeStructure extends Model
     use HasFactory;
 
     protected $fillable = [
-        'school_id', 'class_id', 'section_id', 
+        'school_id', 'grade_id', 'section_id', 
         'category_id', 'description', 'fee_type', 
         'amount', 'due_date', 'is_recurring'
     ];

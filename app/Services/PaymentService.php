@@ -99,8 +99,13 @@ class PaymentService
             $invoice->save();
             
             // Create a receipt
-            // (You would add your receipt creation logic here)
-
+            Receipt::create([
+                'school_id' => $payment->school_id,
+                'payment_id' => $payment->id,
+                'receipt_number' => 'RCT-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(10)),
+                'issued_date' => now(),
+                'issued_by' => null, // Online payments might not have a specific user issuer
+            ]);
             return true;
         });
     }

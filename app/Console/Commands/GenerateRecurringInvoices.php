@@ -27,24 +27,32 @@ class GenerateRecurringInvoices extends Command
         }
 
         // 2. Find all students who need invoices, chunking for performance.
-        Student::with(['school', 'class', 'section'])
-            ->chunk(200, function ($students) use ($recurringFees) {
+                Student::chunk(200, function ($students) use ($recurringFees) {
                 
                 $invoicesToCreate = [];
+                $studentIds = $students->pluck('id');
+                $now = now();
+
+                // OPTIMIZATION: Fetch ALL existing invoices for this chunk of students
+                // in a single query to solve the N+1 problem.
+                $existingInvoices = Invoice::whereIn('student_id', $studentIds)
+                    ->whereYear('issued_date', $now->year)
+                    ->whereMonth('issued_date', $now->month)
+                    ->get()
+                    ->groupBy('student_id');
 
                 foreach ($students as $student) {
                     // 3. Find fees that DIRECTLY apply to this student
+                    // Note: ->where() on a collection is an in-memory operation, which is fast.
                     $applicableFees = $recurringFees->where('school_id', $student->school_id)
-                        ->where('class_id', $student->class_id)
+                        ->where('grade_id', $student->grade_id)
                         ->where('section_id', $student->section_id);
 
                     foreach ($applicableFees as $fee) {
-                        // 4. Check for an existing invoice for this fee for THIS month and year
-                        $invoiceExists = Invoice::where('student_id', $student->id)
-                            ->where('fee_id', $fee->id)
-                            ->whereYear('issued_date', now()->year)
-                            ->whereMonth('issued_date', now()->month)
-                            ->exists();
+                        // 4. Check for an existing invoice using the pre-fetched collection.
+                        // This avoids hitting the database inside the loop.
+                        $invoiceExists = isset($existingInvoices[$student->id]) && 
+                                         $existingInvoices[$student->id]->where('fee_id', $fee->id)->isNotEmpty();
 
                         if ($invoiceExists) {
                             continue; // Skip if invoice already exists for this month
@@ -52,7 +60,7 @@ class GenerateRecurringInvoices extends Command
 
                         // Due date calculation logic
                         $originalDay = Carbon::parse($fee->due_date)->day;
-                        $currentMonthDue = Carbon::now()->setDay($originalDay)->startOfDay();
+                        $currentMonthDue = $now->copy()->setDay($originalDay)->startOfDay();
                         if ($currentMonthDue->day !== $originalDay) {
                            $currentMonthDue->endOfMonth();
                         }
@@ -62,14 +70,14 @@ class GenerateRecurringInvoices extends Command
                             'school_id' => $student->school_id,
                             'student_id' => $student->id,
                             'fee_id' => $fee->id,
-                            'invoice_number' => 'INV-' . strtoupper(uniqid()), // Consider a better generator
+                            'invoice_number' => 'INV-' . \Illuminate\Support\Str::uuid(),  // Consider a better generator
                             'total_amount' => $fee->amount,
                             'balance_remaining' => $fee->amount,
                             'due_date' => $currentMonthDue,
-                            'issued_date' => now(),
+                            'issued_date' => $now,
                             'status' => 'Unpaid',
-                            'created_at' => now(),
-                            'updated_at' => now(),
+                            'created_at' => $now,
+                            'updated_at' => $now,
                         ];
                     }
                 }

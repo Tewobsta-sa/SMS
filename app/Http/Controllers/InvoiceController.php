@@ -27,7 +27,6 @@ class InvoiceController extends Controller
             'due_date' => 'required|date|after_or_equal:today',
         ]);
         
-        $student = Student::find($validated['student_id']);
 
         try {
             $invoice = Invoice::create([

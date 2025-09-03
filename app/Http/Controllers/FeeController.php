@@ -19,7 +19,7 @@ class FeeController extends Controller
 
         $validated = $request->validate([
             // 2. Improved Validation: Scope checks to the admin's school.
-            'class_id' => ['required', Rule::exists('classes', 'id')->where('school_id', $user->school_id)],
+            'grade_id' => ['required', Rule::exists('grades', 'id')->where('school_id', $user->school_id)],
             'section_id' => ['required', Rule::exists('sections', 'id')->where('school_id', $user->school_id)],
             'category_id' => ['required', Rule::exists('categories', 'id')->where('school_id', $user->school_id)],
             'description' => 'required|string|max:255',
@@ -32,7 +32,7 @@ class FeeController extends Controller
             // 3. Secure and Simplified Creation
             $feeStructure = FeeStructure::create([
                 'school_id' => $user->school_id, // Use the admin's school_id
-                'class_id' => $validated['class_id'],
+                'grade_id' => $validated['grade_id'],
                 'section_id' => $validated['section_id'],
                 'category_id' => $validated['category_id'],
                 'description' => $validated['description'],
@@ -58,7 +58,7 @@ class FeeController extends Controller
         
         // Securely scope the query to the user's school.
         $fees = FeeStructure::where('school_id', $request->user()->school_id)
-            ->with(['category', 'class', 'section'])
+            ->with(['category', 'grade', 'section'])
             ->orderBy('due_date', 'asc')
             ->get();
 
@@ -71,7 +71,7 @@ class FeeController extends Controller
         $this->authorize('view', $feeStructure);
 
         // Load relationships if needed
-        $feeStructure->load(['school', 'category', 'class', 'section']);
+        $feeStructure->load(['school', 'category', 'grade', 'section']);
 
         return response()->json(['status' => 'success', 'data' => $feeStructure]);
     }
