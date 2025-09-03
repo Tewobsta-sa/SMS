@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('receipts', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->foreignId('payment_id')->constrained('payments')->onDelete('cascade');
+            $table->string('receipt_number')->unique();
+            $table->date('issued_date')->nullable();
+            $table->foreignId('issued_by')->nullable()->constrained('users')->nullOnDelete(); // admin who issued
             $table->timestamps();
         });
     }

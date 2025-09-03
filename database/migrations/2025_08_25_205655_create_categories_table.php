@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('code')->unique()->nullable(); // for reporting consistency
             $table->timestamps();
         });
     }
