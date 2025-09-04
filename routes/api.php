@@ -9,6 +9,7 @@ use App\Http\Controllers\FeeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\StudentApplicationController;
 
 // Public routes for authentication and password reset
 Route::post('/login', [LoginController::class, 'login']);
@@ -73,5 +74,10 @@ Route::middleware(['auth:sanctum', 'role:parent'])->prefix('parent')->name('pare
 
 Route::post('/chapa/callback', [PaymentController::class, 'chapaCallback'])->name('chapa.callback');
 
+Route::middleware('role:parent')->group(function () {
+    Route::post('/student-applications', [StudentApplicationController::class, 'store']);
+    Route::get('/student-applications', [StudentApplicationController::class, 'index']);
+    Route::get('/student-applications/{id}', [StudentApplicationController::class, 'show']);
+});
 
 });
