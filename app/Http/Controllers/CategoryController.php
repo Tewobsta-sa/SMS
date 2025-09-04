@@ -31,7 +31,7 @@ class CategoryController extends Controller
 
         // 4. Create the category using the safe, authorized data
         try {
-            $category = Category::createAndGenerateCode($dataToCreate);
+            $category = Category::create($dataToCreate);
             return response()->json(['status' => 'success', 'data' => $category], 201);
         } catch (\Exception $e) {
             // \Log::error($e); // Good for debugging

@@ -26,7 +26,7 @@ class FeeStructure extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function Grade()
+    public function grade()
     {
         return $this->belongsTo(Grade::class, 'grade_id');
     }

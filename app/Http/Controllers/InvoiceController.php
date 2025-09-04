@@ -33,7 +33,7 @@ class InvoiceController extends Controller
                 'school_id' => $user->school_id, // Securely use the admin's school ID
                 'student_id' => $validated['student_id'],
                 'fee_id' => $validated['fee_id'],
-                'invoice_number' => 'INV-' . strtoupper(uniqid()),
+                'invoice_number' => 'INV-' . \Illuminate\Support\Str::uuid(),  // Consider a better generator,
                 'total_amount' => $validated['total_amount'],
                 'balance_remaining' => $validated['total_amount'],
                 'due_date' => $validated['due_date'],
