@@ -27,10 +27,6 @@ class StudentForm
 
             TextInput::make('registration_no')->maxLength(255),
             TextInput::make('admission_no')->maxLength(255),
-            TextInput::make('admission_number')->maxLength(255),
-
-            TextInput::make('first_name')->required()->maxLength(255),
-            TextInput::make('last_name')->required()->maxLength(255),
 
             DatePicker::make('date_of_birth')->required(),
             Select::make('gender')->options(['Male' => 'Male', 'Female' => 'Female', 'Other' => 'Other'])->required(),

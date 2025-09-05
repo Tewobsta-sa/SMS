@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Schemas;
 
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Schemas\Schema;
 
 class UserInfolist
@@ -10,6 +11,12 @@ class UserInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
+            ImageEntry::make('profile_picture_url')
+                ->label('Profile Picture')
+                ->disk('public') // look in storage/app/public
+                ->circular()
+                ->default(asset('images/image.png')),
+
             TextEntry::make('name'),
             TextEntry::make('email'),
             TextEntry::make('username'),

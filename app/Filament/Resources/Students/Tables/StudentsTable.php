@@ -18,8 +18,6 @@ class StudentsTable
             ->columns([
                 TextColumn::make('id')->sortable(),
                 TextColumn::make('user.name')->label('Student')->searchable()->sortable(),
-                TextColumn::make('first_name')->searchable(),
-                TextColumn::make('last_name')->searchable(),
                 TextColumn::make('registration_no')->label('Reg No')->toggleable(),
                 TextColumn::make('classModel.name')->label('Class')->sortable(),
                 TextColumn::make('section.name')->label('Section')->sortable(),

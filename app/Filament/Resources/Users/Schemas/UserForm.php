@@ -22,12 +22,9 @@ class UserForm
                 ->searchable()
                 ->required(),
 
-            TextInput::make('username')
-                ->maxLength(255),
+            TextInput::make('username')->maxLength(255),
 
-            TextInput::make('name')
-                ->required()
-                ->maxLength(255),
+            TextInput::make('name')->required()->maxLength(255),
 
             TextInput::make('email')
                 ->email()
@@ -37,16 +34,15 @@ class UserForm
             TextInput::make('phone')->maxLength(255),
             Textarea::make('address')->rows(2),
 
-            FileUpload::make('profile_picture')
+            FileUpload::make('profile_picture_url')
                 ->image()
+                ->disk('public')
                 ->directory('profiles')
                 ->imageEditor()
-                ->downloadable(),
-
-            TextInput::make('profile_picture_url')
-                ->label('Profile Picture URL')
-                ->url()
-                ->maxLength(2048),
+                ->maxSize(5024) // optional: limit to 1MB
+                ->label('Upload Profile Picture')
+                ->getUploadedFileNameForStorageUsing(fn ($file) => time() . '_' . $file->getClientOriginalName())
+                ->helperText('Optional. Will override the Profile Picture URL if uploaded.'),
 
             Select::make('status')
                 ->options([
@@ -73,14 +69,13 @@ class UserForm
                 ->dehydrateStateUsing(function ($state, Get $get) {
                     if (blank($state)) return null;
                     $hash = Hash::make($state);
-                    // Dehydrate both fields if present in schema
                     request()->merge(['password_hash' => $hash]);
                     return $hash;
                 })
                 ->dehydrated(fn ($state) => filled($state)),
 
             TextInput::make('password_hash')
-                ->hidden() // set via merge above
+                ->hidden()
                 ->dehydrated(fn () => filled(request('password_hash')))
                 ->dehydrateStateUsing(fn () => request('password_hash')),
 
@@ -88,7 +83,6 @@ class UserForm
             TextInput::make('last_login_ip')->label('Last Login IP')->maxLength(255),
             TextInput::make('ip_address')->label('Current IP')->maxLength(255),
 
-            // Booleans often mirror status; keep editable if you need both
             Select::make('is_active')
                 ->label('Is Active')
                 ->options([1 => 'Yes', 0 => 'No'])

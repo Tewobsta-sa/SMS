@@ -25,7 +25,6 @@ class TeacherForm
                 ->required(),
 
             TextInput::make('employee_no')->label('Employee No')->maxLength(255),
-            TextInput::make('employee_number')->label('Employee Number')->maxLength(255),
 
             DatePicker::make('hire_date'),
 
@@ -35,7 +34,6 @@ class TeacherForm
             TextInput::make('qualifications')->label('Qualifications (extra)')->maxLength(255),
 
             TextInput::make('workload')->numeric()->minValue(0),
-            TextInput::make('workload_hours')->numeric()->minValue(0),
             TextInput::make('experience_years')->numeric()->minValue(0),
         ]);
     }

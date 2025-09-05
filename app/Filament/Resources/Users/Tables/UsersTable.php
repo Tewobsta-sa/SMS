@@ -17,7 +17,13 @@ class UsersTable
     {
         return $table
             ->columns([
-                ImageColumn::make('profile_picture')->circular()->label('Avatar'),
+                ImageColumn::make('profile_picture_url')
+                    ->label('Avatar')
+                    ->disk('public')       // tells Filament to look in storage/app/public
+                    ->circular()
+                    ->default(asset('images/image.png')), // fallback if empty
+
+
                 TextColumn::make('id')->sortable(),
                 TextColumn::make('name')->searchable()->sortable(),
                 TextColumn::make('email')->searchable()->sortable(),

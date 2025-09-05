@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Students\Schemas;
 
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Schemas\Schema;
 
 class StudentInfolist
@@ -10,12 +11,15 @@ class StudentInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            TextEntry::make('user.name')->label('Student User'),
-            TextEntry::make('first_name'),
-            TextEntry::make('last_name'),
+            ImageEntry::make('user.profile_picture_url')
+                ->label('Profile Picture')
+                ->disk('public')   // storage/app/public
+                ->circular()        // optional: adjust avatar size
+                ->default(asset('images/image.png')),
+
+            TextEntry::make('user.name')->label('Student Name'),
             TextEntry::make('registration_no'),
             TextEntry::make('admission_no'),
-            TextEntry::make('admission_number'),
             TextEntry::make('gender')->badge(),
             TextEntry::make('date_of_birth')->date(),
             TextEntry::make('guardian.user.name')->label('Guardian'),

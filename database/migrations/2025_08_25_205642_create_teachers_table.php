@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('employee_no')->nullable();
-            $table->string('employee_number')->nullable();
             $table->date('hire_date')->nullable();
             $table->string('department')->nullable();
             $table->string('specialization')->nullable();
