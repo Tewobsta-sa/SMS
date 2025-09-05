@@ -41,16 +41,8 @@ class UserForm
                 ->imageEditor()
                 ->maxSize(5024) // optional: limit to 1MB
                 ->label('Upload Profile Picture')
-                ->getUploadedFileNameForStorageUsing(fn ($file) => time() . '_' . $file->getClientOriginalName())
+                ->getUploadedFileNameForStorageUsing(fn ($file) => uniqid() . '_' . str($file->getClientOriginalName())->slug('_'))
                 ->helperText('Optional. Will override the Profile Picture URL if uploaded.'),
-
-            Select::make('status')
-                ->options([
-                    'active' => 'Active',
-                    'inactive' => 'Inactive',
-                ])
-                ->required()
-                ->default('active'),
 
             Select::make('role')
                 ->label('Role')
@@ -62,22 +54,18 @@ class UserForm
                 ])
                 ->required(),
 
-            TextInput::make('password')
-                ->password()
-                ->revealable()
-                ->required(fn ($record) => $record === null)
-                ->dehydrateStateUsing(function ($state, Get $get) {
-                    if (blank($state)) return null;
-                    $hash = Hash::make($state);
-                    request()->merge(['password_hash' => $hash]);
-                    return $hash;
-                })
-                ->dehydrated(fn ($state) => filled($state)),
+            TextInput::make('password')  
+                ->password()  
+                ->revealable()  
+                ->required(fn ($record) => $record === null)  
+                ->dehydrated(fn ($state) => filled($state))  
+                ->confirmed(),  
 
-            TextInput::make('password_hash')
-                ->hidden()
-                ->dehydrated(fn () => filled(request('password_hash')))
-                ->dehydrateStateUsing(fn () => request('password_hash')),
+            TextInput::make('password_confirmation')  
+                ->password()  
+                ->revealable()  
+                ->required(fn ($record) => $record === null)  
+                ->dehydrated(false),  
 
             DateTimePicker::make('last_login_at'),
             TextInput::make('last_login_ip')->label('Last Login IP')->maxLength(255),

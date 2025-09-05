@@ -29,7 +29,6 @@ class UsersTable
                 TextColumn::make('email')->searchable()->sortable(),
                 TextColumn::make('school.name')->label('School')->sortable()->toggleable(),
                 TextColumn::make('role')->badge()->sortable(),
-                TextColumn::make('status')->badge()->sortable(),
                 TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([

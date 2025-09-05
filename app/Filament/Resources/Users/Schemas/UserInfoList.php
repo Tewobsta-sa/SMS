@@ -21,7 +21,6 @@ class UserInfolist
             TextEntry::make('email'),
             TextEntry::make('username'),
             TextEntry::make('role')->badge(),
-            TextEntry::make('status')->badge(),
             TextEntry::make('school.name')->label('School'),
             TextEntry::make('phone'),
             TextEntry::make('address'),

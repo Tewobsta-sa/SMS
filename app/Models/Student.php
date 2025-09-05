@@ -11,9 +11,6 @@ class Student extends Model
         'user_id',
         'registration_no',
         'admission_no',
-        'admission_number',
-        'first_name',
-        'last_name',
         'date_of_birth',
         'gender',
         'health_info',
@@ -24,7 +21,6 @@ class Student extends Model
         'guardian_id',
         'class_id',
         'section_id',
-        'status',
         'registration_status',
         'enrollment_date',
     ];

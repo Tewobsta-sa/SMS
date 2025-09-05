@@ -44,13 +44,14 @@ class StudentForm
                     ->searchable()
                     ->getSearchResultsUsing(function (string $search) {
                         return \App\Models\ParentModel::whereHas('user', function ($query) use ($search) {
-                            $query->where('name', 'like', "%{$search}%");
-                        })
-                        ->with('user')
-                        ->limit(50)
-                        ->get()
-                        ->mapWithKeys(fn ($parent) => [$parent->id => $parent->user->name]);
+                                $query->where('name', 'like', "%{$search}%");
+                            })
+                            ->with(['user:id,name']) // only load id and name
+                            ->limit(50)
+                            ->get()
+                            ->pluck('user.name', 'id'); // pluck directly
                     }),
+
 
 
             // Class & Section assignment

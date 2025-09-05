@@ -10,14 +10,12 @@ class Teacher extends Model
         'school_id',
         'user_id',
         'employee_no',
-        'employee_number',
         'hire_date',
         'department',
         'specialization',
         'qualification',
         'qualifications',
         'workload',
-        'workload_hours',
         'experience_years',
     ];
     public function school() {
