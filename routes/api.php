@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/test', function () {
     return response()->json(['status' => 'api.php is working']);
@@ -60,5 +61,12 @@ Route::middleware(['auth:sanctum'])->prefix('teacher')->group(function () {
 
     // Profile
     Route::get('/profile', [TeacherController::class, 'getMyProfile']);
+
 });
+
+    Route::post('/payments/init', [PaymentController::class, 'initialize'])->name('payment.init');
+    Route::get('/payments/status', [PaymentController::class, 'status'])->name('payment.status');
+    Route::get('/payments/return', [PaymentController::class, 'return'])->name('payment.return');
+    Route::post('/payments/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
+
 
