@@ -11556,6 +11556,59 @@
                 "source": "https://github.com/webmozarts/assert/tree/1.11.0"
             },
             "install-path": "../webmozart/assert"
+        },
+        {
+            "name": "yosinan/chapavel",
+            "version": "1.0.0",
+            "version_normalized": "1.0.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Yosinan/chapavel.git",
+                "reference": "8fea989126bf31c7f8ede86366ac7c4c0a098979"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Yosinan/chapavel/zipball/8fea989126bf31c7f8ede86366ac7c4c0a098979",
+                "reference": "8fea989126bf31c7f8ede86366ac7c4c0a098979",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.0",
+                "illuminate/support": "^12.0",
+                "php": "^8.1"
+            },
+            "time": "2025-08-14T18:33:00+00:00",
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Yosinan\\Chapavel\\ChapavelServiceProvider"
+                    ]
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Yosinan\\Chapavel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Yoseph Zewdu",
+                    "email": "ymymym4634@gmail.com"
+                }
+            ],
+            "description": "Custom Chapa Payment Integration for Laravel",
+            "keywords": [
+                "framework",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/Yosinan/chapavel/issues",
+                "source": "https://github.com/Yosinan/chapavel/tree/v1.0.0"
+            },
+            "install-path": "../yosinan/chapavel"
         }
     ],
     "dev": true,
