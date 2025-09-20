@@ -3,7 +3,6 @@ name: Deploy Laravel App to cPanel
 on:
   push:
     branches:
-      - main       # change to your branch if needed
       - teacher    # include any branch you deploy
 
 jobs:
@@ -45,7 +44,7 @@ jobs:
             **/.git*
             **/.github/**
             node_modules/**
-            vendor/**
+            /vendor/**
             tests/**
             .env
             *.log
