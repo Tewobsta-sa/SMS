@@ -2,75 +2,43 @@
 
 namespace App\Models;
 
-use App\Notifications\PasswordResetNotification;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Permission\Traits\HasRoles; // if using spatie
+use App\Notifications\PasswordResetNotification;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Contracts\Auth\CanResetPassword;
 
-class User extends Authenticatable implements CanResetPassword
+class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles, HasApiTokens;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
-        'school_id',
-        'name',
-        'email',
-        'phone',
-        'address',
-        'profile_picture_url',
-        'password',
-        'role',
-        'last_login_at',
-        'last_login_ip',
-        'is_active',
+        'name','email','password','phone','address','profile_picture_url','school_id','role','is_active'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password','remember_token'];
 
-    protected $table = 'users';
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    // relationships
+    public function student()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'last_login_at' => 'datetime',
-            'is_active' => 'boolean',
-            'password' => 'hashed',
-        ];
+        return $this->hasOne(Student::class);
     }
 
-    /**
-     * Get the school that the user belongs to.
-     */
-    public function school(): BelongsTo
+    public function teacher()
     {
-        return $this->belongsTo(School::class);
+        return $this->hasOne(Teacher::class);
     }
 
-    public function teacher(){ return $this->hasOne(\App\Models\Teacher::class); }
-    public function student(){ return $this->hasOne(\App\Models\Student::class); }
-    public function parentModel(){ return $this->hasOne(\App\Models\ParentModel::class); }
+    public function parentProfile()
+    {
+        return $this->hasOne(ParentModel::class, 'user_id'); // note class name below
+    }
+
+    public function school()
+    {
+        return $this->belongsTo(School::class); // Assuming the School model exists
+    }
     
     /**
      * Send the password reset notification.

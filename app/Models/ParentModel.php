@@ -3,30 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ParentModel extends Model
 {
+    use HasFactory;
+
+    protected $table = 'parents';
+
     protected $fillable = [
-        'school_id',
-        'user_id',
-        'occupation',
-        'relation',
+        'school_id','user_id','occupation','relation'
     ];
 
-    protected $table = 'parent_models';
-
-    public function getUserNameAttribute(): ?string
+    public function user()
     {
-        return $this->user?->name;
+        return $this->belongsTo(User::class);
     }
 
-    public function user(){ return $this->belongsTo(User::class); }
-
-    public function school() {
-        return $this->belongsTo(School::class);
-    }
-
-    public function students() {
-        return $this->hasMany(Student::class, 'guardian_id');
+    public function students()
+    {
+        return $this->belongsToMany(Student::class, 'parent_student', 'parent_id', 'student_id')
+                    ->withTimestamps()
+                    ->withPivot('relationship_type');
     }
 }

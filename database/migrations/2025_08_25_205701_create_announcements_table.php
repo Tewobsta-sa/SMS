@@ -4,22 +4,24 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('announcements', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('teacher_id');
+            $table->unsignedBigInteger('class_id')->nullable();
+            $table->unsignedBigInteger('section_id')->nullable();
+            $table->string('title');
+            $table->text('message');
             $table->timestamps();
+
+            $table->foreign('teacher_id')->references('id')->on('teachers')->onDelete('cascade');
+            $table->foreign('class_id')->references('id')->on('school_classes')->onDelete('set null');
+            $table->foreign('section_id')->references('id')->on('sections')->onDelete('set null');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('announcements');

@@ -17,4 +17,19 @@ class SchoolClass extends Model {
     public function school() {
         return $this->belongsTo( School::class );
     }
+
+    public function sections()
+    {
+        return $this->hasMany(Section::class, 'class_id');
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class, 'class_id');
+    }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class, 'class_id');
+    }
 }

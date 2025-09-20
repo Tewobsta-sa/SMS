@@ -6,31 +6,26 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('employee_no')->nullable();
+            $table->foreignId('school_id')->constrained('schools')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('employee_no')->nullable()->unique();
             $table->date('hire_date')->nullable();
-            $table->string('department')->nullable();
+            $table->string('department')->nullable()->index();
             $table->string('specialization')->nullable();
-            $table->string('qualification')->nullable();
-            $table->string('qualifications')->nullable();
+            $table->text('qualifications')->nullable(); // freeform JSON/text
             $table->integer('workload')->nullable();
             $table->integer('workload_hours')->nullable();
             $table->integer('experience_years')->nullable();
             $table->timestamps();
+
+            $table->unique(['school_id','user_id']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('teachers');
