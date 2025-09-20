@@ -1,0 +1,47 @@
+name: Deploy Laravel App to cPanel
+
+on:
+  push:
+    branches:
+      - teacher   # change if you deploy from another branch
+
+jobs:
+  ftp-deploy:
+    name: 🚀 Deploy via FTP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'   # match your hosting PHP version
+
+      - name: Install Dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Build Frontend (if using Laravel Mix/Vite)
+        run: |
+          npm install
+          npm run build
+        continue-on-error: true   # skip if no frontend
+
+      - name: Upload Files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.3
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_PATH }}
+          exclude: |
+            **/.git*
+            **/.github/**
+            node_modules/**
+            vendor/**        # exclude vendor (we install it on server)
+            tests/**
+            .env
+
+      - name: Run Composer on Server (optional if SSH is allowed)
+        run: echo "⚠️ Run 'composer install' manually on cPanel if needed"
