@@ -3,7 +3,8 @@ name: Deploy Laravel App to cPanel
 on:
   push:
     branches:
-      - teacher  # change if you deploy from another branch
+      - main       # change to your branch if needed
+      - teacher    # include any branch you deploy
 
 jobs:
   ftp-deploy:
@@ -11,37 +12,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      # 1️⃣ Checkout your repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2️⃣ Setup PHP 8.3 to match your cPanel
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'   # match your hosting PHP version
+          php-version: '8.3'
 
-      - name: Install Dependencies
+      # 3️⃣ Install Composer dependencies
+      - name: Install PHP dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Build Frontend (if using Laravel Mix/Vite)
+      # 4️⃣ Optional: Build frontend (if using Laravel Mix / Vite)
+      - name: Build frontend
         run: |
           npm install
           npm run build
-        continue-on-error: true   # skip if no frontend
+        continue-on-error: true  # skip if no frontend
 
-      - name: Upload Files via FTP
+      # 5️⃣ Upload via FTP (exclude unnecessary files)
+      - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.3
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_PATH }}
+          server-dir: ${{ secrets.FTP_PATH }}  # ensure it ends with '/'
           exclude: |
             **/.git*
             **/.github/**
             node_modules/**
-            vendor/**        # exclude vendor (we install it on server)
+            vendor/**
             tests/**
             .env
+            *.log
 
-      - name: Run Composer on Server (optional if SSH is allowed)
-        run: echo "⚠️ Run 'composer install' manually on cPanel if needed"
+      # 6️⃣ Optional: Run Laravel commands on cPanel via SSH (if possible)
+      # If you can SSH to cPanel, you can run migrations & cache commands here
+      # Otherwise, run them manually in cPanel terminal
