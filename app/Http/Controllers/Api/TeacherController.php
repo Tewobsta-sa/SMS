@@ -17,12 +17,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class TeacherController extends Controller
 {
     /**
-     * GET /me/classes - Get teacher's assigned classes
+     * GET /me/classes
      */
     public function getMyClasses(): JsonResponse
     {
@@ -47,7 +48,7 @@ class TeacherController extends Controller
                     ],
                     'academic_year' => $ts->academic_year,
                     'semester' => $ts->semester,
-                ]) ;
+                ]);
 
             return response()->json(['success' => true, 'data' => $classes]);
         } catch (\Exception $e) {
@@ -56,10 +57,46 @@ class TeacherController extends Controller
         }
     }
 
-    public function markAttendance(Request $request): JsonResponse
+    /**
+     * GET /classes/{classId}/roster
+     */
+    public function getClassRoster(int $classId, Request $request): JsonResponse
+    {
+        $sectionId = $request->query('section_id'); // optional filter
+        try {
+            $teacher = $this->getCurrentTeacher();
+            $this->authorizeTeacherFor($classId, $sectionId);
+
+            $enrollments = Enrollment::where('class_id', $classId)
+                ->when($sectionId, fn($q) => $q->where('section_id', $sectionId))
+                ->where('active', true)
+                ->with('student')
+                ->get();
+
+            $students = $enrollments->map(fn($enroll) => [
+                'id' => $enroll->student->id,
+                'registration_no' => $enroll->student->registration_no,
+                'first_name' => $enroll->student->first_name,
+                'last_name' => $enroll->student->last_name,
+                'email' => $enroll->student->email,
+                'phone' => $enroll->student->phone,
+                'date_of_birth' => $enroll->student->date_of_birth,
+                'gender' => $enroll->student->gender,
+            ]);
+
+            return response()->json(['success' => true, 'data' => $students]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch class roster: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * POST /classes/{classId}/attendance
+     */
+   public function markAttendance(int $classId, Request $request): JsonResponse
 {
     $validator = Validator::make($request->all(), [
-        'class_id' => 'required|exists:school_classes,id',
         'section_id' => 'required|exists:sections,id',
         'date' => 'required|date',
         'records' => 'required|array',
@@ -73,21 +110,21 @@ class TeacherController extends Controller
 
     try {
         $teacher = $this->getCurrentTeacher();
-        $this->authorizeTeacherFor($request->class_id, $request->section_id);
+        $this->authorizeTeacherFor($classId, $request->section_id);
 
-        DB::transaction(function () use ($request, $teacher) {
+        DB::transaction(function () use ($request, $classId, $teacher) {
             foreach ($request->records as $record) {
                 Attendance::updateOrCreate(
                     [
                         'student_id' => $record['student_id'],
-                        'class_id' => $request->class_id,
+                        'class_id' => $classId,
                         'section_id' => $request->section_id,
-                        'date' => $request->date,
+                        'date' => $request->date, // use top-level date
                     ],
                     [
                         'status' => $record['status'],
-                        'teacher_id' => $teacher->id,          // auto-fill teacher_id
-                        'school_id' => $teacher->school_id ?? null, // optional school_id
+                        'teacher_id' => $teacher->id,
+                        'school_id' => $teacher->school_id,
                     ]
                 );
             }
@@ -102,57 +139,37 @@ class TeacherController extends Controller
 
 
     /**
-     * Get students enrolled in a specific class and section
+     * GET /classes/{classId}/assignments
      */
-    public function getStudentsByClass(Request $request): JsonResponse
+    public function getAssignmentsByClass(int $classId): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'class_id' => 'required|integer|exists:school_classes,id',
-            'section_id' => 'required|integer|exists:sections,id'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
-        }
-
         try {
-            $this->authorizeTeacherFor($request->class_id, $request->section_id);
+            $teacher = $this->getCurrentTeacher();
+            $this->authorizeTeacherFor($classId, null);
 
-            $students = Enrollment::where('class_id', $request->class_id)
-                ->where('section_id', $request->section_id)
-                ->active()
-                ->with('student')
-                ->get()
-                ->map(fn($enrollment) => [
-                    'id' => $enrollment->student->id,
-                    'student_id' => $enrollment->student->student_id,
-                    'first_name' => $enrollment->student->first_name,
-                    'last_name' => $enrollment->student->last_name,
-                    'email' => $enrollment->student->email,
-                    'phone' => $enrollment->student->phone,
-                    'date_of_birth' => $enrollment->student->date_of_birth,
-                    'gender' => $enrollment->student->gender,
-                ]);
+            $assignments = Assignment::where('class_id', $classId)
+                ->where('teacher_id', $teacher->id)
+                ->get();
 
-            return response()->json(['success' => true, 'data' => $students]);
+            return response()->json(['success' => true, 'data' => $assignments]);
         } catch (\Exception $e) {
-            Log::error('Failed to fetch students by class: ' . $e->getMessage());
+            Log::error('Failed to fetch assignments: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Create assignment (teacher_id auto-filled)
+     * POST /classes/{classId}/assignments
      */
-    public function createAssignment(Request $request): JsonResponse
+    public function createAssignment(int $classId, Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'class_id' => 'required|exists:school_classes,id',
             'section_id' => 'required|exists:sections,id',
             'subject_id' => 'required|exists:subjects,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'due_date' => 'required|date',
+            'file' => 'nullable|file|mimes:pdf,doc,docx',
         ]);
 
         if ($validator->fails()) {
@@ -161,18 +178,26 @@ class TeacherController extends Controller
 
         try {
             $teacher = $this->getCurrentTeacher();
-            $this->authorizeTeacherFor($request->class_id, $request->section_id, $request->subject_id);
+            $this->authorizeTeacherFor($classId, $request->section_id, $request->subject_id);
 
-            $assignment = Assignment::create([
-                'teacher_id' => $teacher->id,             // auto-filled from logged-in teacher
-                'school_id'  => $teacher->school_id ?? null, // optional multi-tenancy
-                'class_id'   => $request->class_id,
+            $assignmentData = [
+                'teacher_id' => $teacher->id,
+                'school_id' => $teacher->school_id,
+                'class_id' => $classId,
                 'section_id' => $request->section_id,
                 'subject_id' => $request->subject_id,
-                'title'      => $request->title,
-                'description'=> $request->description,
-                'due_date'   => $request->due_date,
-            ]);
+                'title' => $request->title,
+                'description' => $request->description,
+                'due_date' => $request->due_date,
+            ];
+
+            // Handle file upload
+            if ($request->hasFile('file')) {
+                $path = $request->file('file')->store('assignments', 'public');
+                $assignmentData['file_path'] = $path;
+            }
+
+            $assignment = Assignment::create($assignmentData);
 
             return response()->json(['success' => true, 'data' => $assignment]);
         } catch (\Exception $e) {
@@ -182,15 +207,15 @@ class TeacherController extends Controller
     }
 
     /**
-     * Create announcement (optional: include teacher_id)
+     * POST /classes/{classId}/grades
      */
-    public function createAnnouncement(Request $request): JsonResponse
+    public function enterGrades(int $classId, Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'class_id' => 'required|exists:school_classes,id',
-            'section_id' => 'required|exists:sections,id',
-            'title' => 'required|string|max:255',
-            'message' => 'required|string',
+            'records' => 'required|array',
+            'records.*.student_id' => 'required|exists:students,id',
+            'records.*.assessment_id' => 'required|exists:exams,id',
+            'records.*.score' => 'required|numeric|min:0|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -199,15 +224,59 @@ class TeacherController extends Controller
 
         try {
             $teacher = $this->getCurrentTeacher();
-            $this->authorizeTeacherFor($request->class_id, $request->section_id);
+
+            DB::transaction(function () use ($request, $teacher, $classId) {
+                foreach ($request->records as $record) {
+                    $exam = Exam::findOrFail($record['assessment_id']);
+                    $this->authorizeTeacherFor($classId, $exam->section_id, $exam->subject_id);
+
+                    Grade::updateOrCreate(
+                        [
+                            'exam_id' => $exam->id,
+                            'student_id' => $record['student_id'],
+                        ],
+                        [
+                            'score' => $record['score'],
+                            'teacher_id' => $teacher->id,
+                            'school_id' => $teacher->school_id,
+                        ]
+                    );
+                }
+            });
+
+            return response()->json(['success' => true, 'message' => 'Grades recorded successfully']);
+        } catch (\Exception $e) {
+            Log::error('Failed to enter grades: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * POST /classes/{classId}/announcements
+     */
+    public function createAnnouncement(int $classId, Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'section_id' => 'required|exists:sections,id',
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $teacher = $this->getCurrentTeacher();
+            $this->authorizeTeacherFor($classId, $request->section_id);
 
             $announcement = Announcement::create([
-                'teacher_id' => $teacher->id,      // auto-fill teacher_id
-                'school_id'  => $teacher->school_id ?? null,
-                'class_id'   => $request->class_id,
+                'teacher_id' => $teacher->id,
+                'school_id' => $teacher->school_id,
+                'class_id' => $classId,
                 'section_id' => $request->section_id,
-                'title'      => $request->title,
-                'message'    => $request->message,
+                'title' => $request->title,
+                'message' => $request->body,
             ]);
 
             return response()->json(['success' => true, 'data' => $announcement]);
@@ -216,48 +285,6 @@ class TeacherController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
-
-    public function enterGrades(Request $request): JsonResponse
-{
-    $validator = Validator::make($request->all(), [
-        'exam_id' => 'required|exists:exams,id',
-        'records' => 'required|array',
-        'records.*.student_id' => 'required|exists:students,id',
-        'records.*.score' => 'required|numeric|min:0|max:100',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
-    }
-
-    try {
-        $teacher = $this->getCurrentTeacher();
-        $exam = Exam::findOrFail($request->exam_id);
-        $this->authorizeTeacherFor($exam->class_id, $exam->section_id, $exam->subject_id);
-
-        DB::transaction(function () use ($request, $exam, $teacher) {
-            foreach ($request->records as $record) {
-                Grade::updateOrCreate(
-                    [
-                        'exam_id' => $exam->id,
-                        'student_id' => $record['student_id'],
-                    ],
-                    [
-                        'score' => $record['score'],
-                        'teacher_id' => $teacher->id,          // auto-fill teacher_id
-                        'school_id' => $teacher->school_id ?? null, // optional school_id
-                    ]
-                );
-            }
-        });
-
-        return response()->json(['success' => true, 'message' => 'Grades recorded successfully']);
-    } catch (\Exception $e) {
-        Log::error('Failed to enter grades: ' . $e->getMessage());
-        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-    }
-}
-
 
     /**
      * Utility: get current logged-in teacher
@@ -277,11 +304,14 @@ class TeacherController extends Controller
     /**
      * Utility: authorize teacher for class/section/subject
      */
-    private function authorizeTeacherFor(int $classId, int $sectionId, ?int $subjectId = null): void
+    private function authorizeTeacherFor(int $classId, ?int $sectionId = null, ?int $subjectId = null): void
     {
         $query = $this->getCurrentTeacher()->teacherSubjects()
-            ->where('class_id', $classId)
-            ->where('section_id', $sectionId);
+            ->where('class_id', $classId);
+
+        if ($sectionId) {
+            $query->where('section_id', $sectionId);
+        }
 
         if ($subjectId) {
             $query->where('subject_id', $subjectId);

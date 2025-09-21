@@ -41,26 +41,22 @@ Route::middleware('auth:sanctum')->group(function () {
 use App\Http\Controllers\Api\TeacherController;
 
 Route::middleware(['auth:sanctum'])->prefix('teacher')->group(function () {
-    // Classes & Students
-    Route::get('/my-classes', [TeacherController::class, 'getMyClasses']);
-    Route::get('/assigned-classes', [TeacherController::class, 'getAssignedClasses']);
-    Route::get('/students', [TeacherController::class, 'getStudentsByClass']);
-    Route::get('/class-roster', [TeacherController::class, 'getClassRoster']);
 
-    // Attendance
-    Route::post('/attendance/mark', [TeacherController::class, 'markAttendance']);
+    Route::get('/me/classes', [TeacherController::class, 'getMyClasses']);
 
-    // Assignments
-    Route::post('/assignments', [TeacherController::class, 'createAssignment']);
+    Route::get('/classes/{classId}/roster', [TeacherController::class, 'getClassRoster']);
 
-    // Grades
-    Route::post('/grades', [TeacherController::class, 'enterGrades']);
+    Route::post('/classes/{classId}/attendance', [TeacherController::class, 'markAttendance']);
 
-    // Announcements
-    Route::post('/announcements', [TeacherController::class, 'createAnnouncement']);
+    // 4. Assignments
+    Route::get('/classes/{classId}/assignments', [TeacherController::class, 'getAssignmentsByClass']);
+    Route::post('/classes/{classId}/assignments', [TeacherController::class, 'createAssignment']);
 
-    // Profile
-    Route::get('/profile', [TeacherController::class, 'getMyProfile']);
+    // 5. Grades
+    Route::post('/classes/{classId}/grades', [TeacherController::class, 'enterGrades']);
+
+    // 6. Announcements
+    Route::post('/classes/{classId}/announcements', [TeacherController::class, 'createAnnouncement']);
 
 });
 
