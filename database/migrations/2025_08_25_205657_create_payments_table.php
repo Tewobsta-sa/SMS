@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
+            $table->string('tx_ref')->unique();
+            $table->string('name');
+            $table->string('email');
+            $table->decimal('amount', 10, 2);
+            $table->string('status')->default('pending');
+            $table->json('raw_init')->nullable();
+            $table->json('raw_verify')->nullable();
             $table->timestamps();
         });
     }
