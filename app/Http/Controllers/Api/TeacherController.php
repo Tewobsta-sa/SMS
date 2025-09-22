@@ -206,50 +206,141 @@ class TeacherController extends Controller
         }
     }
 
-    /**
-     * POST /classes/{classId}/grades
-     */
-    public function enterGrades(int $classId, Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'records' => 'required|array',
-            'records.*.student_id' => 'required|exists:students,id',
-            'records.*.assessment_id' => 'required|exists:exams,id',
-            'records.*.score' => 'required|numeric|min:0|max:100',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
-        }
+public function enterGrades(int $classId, Request $request): JsonResponse
+{
+    $validator = Validator::make($request->all(), [
+        'records' => 'required|array',
+        'records.*.student_id' => 'required|exists:students,id',
+        'records.*.type' => 'required|in:exam,assignment',
+        'records.*.assessment_id' => 'required|integer', // exam_id or assignment_id
+        'records.*.marks_obtained' => 'required|numeric|min:0',
+        'records.*.total_marks' => 'required|numeric|min:0',
+        'records.*.weight' => 'nullable|numeric|min:0|max:100',
+    ]);
 
-        try {
-            $teacher = $this->getCurrentTeacher();
+    if ($validator->fails()) {
+        return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+    }
 
-            DB::transaction(function () use ($request, $teacher, $classId) {
-                foreach ($request->records as $record) {
-                    $exam = Exam::findOrFail($record['assessment_id']);
+    try {
+        $teacher = $this->getCurrentTeacher();
+
+        DB::transaction(function () use ($request, $teacher, $classId) {
+            $finalGrades = [];
+
+            foreach ($request->records as $record) {
+                $studentId = $record['student_id'];
+                $type = $record['type'];
+                $assessmentId = $record['assessment_id'];
+                $marks = $record['marks_obtained'];
+                $total = $record['total_marks'];
+                $weight = $record['weight'] ?? null;
+
+                if ($type === 'exam') {
+                    $exam = Exam::findOrFail($assessmentId);
                     $this->authorizeTeacherFor($classId, $exam->section_id, $exam->subject_id);
 
-                    Grade::updateOrCreate(
+                    $grade = Grade::updateOrCreate(
+                        ['student_id' => $studentId, 'exam_id' => $exam->id],
                         [
-                            'exam_id' => $exam->id,
-                            'student_id' => $record['student_id'],
-                        ],
-                        [
-                            'score' => $record['score'],
+                            'assignment_id' => null, // ensure assignment_id is null
+                            'marks_obtained' => $marks,
+                            'total_marks' => $total,
+                            'percentage' => $total ? ($marks / $total * 100) : 0,
+                            'weight' => $weight,
                             'teacher_id' => $teacher->id,
                             'school_id' => $teacher->school_id,
+                            'class_id' => $classId,
+                            'section_id' => $exam->section_id,
+                            'subject_id' => $exam->subject_id,
+                            'grade_letter' => null, // only final grades have letters
+                        ]
+                    );
+
+                } elseif ($type === 'assignment') {
+                    $assignment = Assignment::findOrFail($assessmentId);
+                    $this->authorizeTeacherFor($classId, $assignment->section_id, $assignment->subject_id);
+
+                    $grade = Grade::updateOrCreate(
+                        ['student_id' => $studentId, 'assignment_id' => $assignment->id],
+                        [
+                            'exam_id' => null, // ensure exam_id is null
+                            'marks_obtained' => $marks,
+                            'total_marks' => $total,
+                            'percentage' => $total ? ($marks / $total * 100) : 0,
+                            'weight' => $weight,
+                            'teacher_id' => $teacher->id,
+                            'school_id' => $teacher->school_id,
+                            'class_id' => $classId,
+                            'section_id' => $assignment->section_id,
+                            'subject_id' => $assignment->subject_id,
+                            'grade_letter' => null, // only final grades have letters
                         ]
                     );
                 }
-            });
 
-            return response()->json(['success' => true, 'message' => 'Grades recorded successfully']);
-        } catch (\Exception $e) {
-            Log::error('Failed to enter grades: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+                $finalGrades[$studentId][$grade->subject_id][] = $grade;
+            }
+
+            // Calculate final weighted grades for each student per subject
+foreach ($finalGrades as $studentId => $subjects) {
+    foreach ($subjects as $subjectId => $grades) {
+        $totalWeight = 0;
+        $weightedSum = 0;
+
+        foreach ($grades as $g) {
+            $w = $g->weight ?? 100 / count($grades); 
+            $weightedSum += ($g->percentage * $w);
+            $totalWeight += $w;
         }
+
+        $finalPercentage = $totalWeight ? ($weightedSum / $totalWeight) : 0;
+
+        Grade::updateOrCreate(
+            ['student_id' => $studentId, 'subject_id' => $subjectId, 'is_final' => true],
+            [
+                'exam_id' => null,
+                'assignment_id' => null,
+                'marks_obtained' => $finalPercentage,   // ✅ set marks as percentage
+                'total_marks' => 100,                   // ✅ use 100 as total
+                'percentage' => $finalPercentage,
+                'grade_letter' => $this->calculateGradeLetter($finalPercentage),
+                'teacher_id' => $teacher->id,
+                'school_id' => $teacher->school_id,
+                'class_id' => $classId,
+                'is_final' => true,
+            ]
+        );
     }
+}
+
+        });
+
+        return response()->json(['success' => true, 'message' => 'Grades recorded and final grades calculated successfully']);
+    } catch (\Exception $e) {
+        Log::error('Failed to enter grades: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
+
+
+/**
+ * Helper: convert percentage to grade letter
+ */
+private function calculateGradeLetter(float $percentage): string
+{
+    return match (true) {
+        $percentage >= 90 => 'A',
+        $percentage >= 80 => 'B',
+        $percentage >= 70 => 'C',
+        $percentage >= 60 => 'D',
+        default => 'F',
+    };
+}
+
+
+
 
     /**
      * POST /classes/{classId}/announcements

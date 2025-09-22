@@ -31,16 +31,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/teacher-dashboard', function () {
             return response()->json(['message' => 'Welcome to the teacher dashboard!']);
         });
-
-        Route::prefix('teacher')->group(function () {
-            Route::get('/me/classes', [TeacherController::class, 'getMyClasses']);
-            Route::get('/classes/{classId}/roster', [TeacherController::class, 'getClassRoster']);
-            Route::post('/classes/{classId}/attendance', [TeacherController::class, 'markAttendance']);
-            Route::get('/classes/{classId}/assignments', [TeacherController::class, 'getAssignmentsByClass']);
-            Route::post('/classes/{classId}/assignments', [TeacherController::class, 'createAssignment']);
-            Route::post('/classes/{classId}/grades', [TeacherController::class, 'enterGrades']);
-            Route::post('/classes/{classId}/announcements', [TeacherController::class, 'createAnnouncement']);
-        });
     });
 
     Route::middleware('role:student')->group(function () {
@@ -49,10 +39,18 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 });
+Route::middleware(['auth:sanctum'])->prefix('teacher')->group(function () {
+    Route::get('/me/classes', [TeacherController::class, 'getMyClasses']);
+    Route::get('/classes/{classId}/roster', [TeacherController::class, 'getClassRoster']);
+    Route::post('/classes/{classId}/attendance', [TeacherController::class, 'markAttendance']);
+    Route::get('/classes/{classId}/assignments', [TeacherController::class, 'getAssignmentsByClass']);
+    Route::post('/classes/{classId}/assignments', [TeacherController::class, 'createAssignment']);
+    Route::post('/classes/{classId}/grades', [TeacherController::class, 'enterGrades']);
+    Route::post('/classes/{classId}/announcements', [TeacherController::class, 'createAnnouncement']);
+});
 
 
-
-Route::middleware(['auth:sanctum'])->prefix('parent')->group(function () {
+Route::middleware(['auth:sanctum', 'role:parent'])->prefix('parent')->group(function () {
     Route::get('/me/children', [ParentController::class, 'getMyChildren']);
     Route::get('/students/{id}/attendance', [ParentController::class, 'getStudentAttendance']);
     Route::get('/students/{id}/grades', [ParentController::class, 'getStudentGrades']);
