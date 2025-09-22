@@ -50,7 +50,7 @@ Route::middleware(['auth:sanctum'])->prefix('teacher')->group(function () {
 });
 
 
-Route::middleware(['auth:sanctum', 'role:parent'])->prefix('parent')->group(function () {
+Route::middleware(['auth:sanctum'])->prefix('parent')->group(function () {
     Route::get('/me/children', [ParentController::class, 'getMyChildren']);
     Route::get('/students/{id}/attendance', [ParentController::class, 'getStudentAttendance']);
     Route::get('/students/{id}/grades', [ParentController::class, 'getStudentGrades']);

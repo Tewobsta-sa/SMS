@@ -21,27 +21,31 @@ class ParentController extends Controller
      * List all students linked to the logged-in parent
      */
     public function getMyChildren(): JsonResponse
-    {
-        try {
-            $parent = $this->getCurrentParent();
+{
+    try {
+        $parent = $this->getCurrentParent();
 
-            $children = $parent->students()->get()->map(fn($student) => [
-                'id' => $student->id,
-                'registration_no' => $student->registration_no,
-                'first_name' => $student->first_name,
-                'last_name' => $student->last_name,
-                'email' => $student->email,
-                'phone' => $student->phone,
-                'date_of_birth' => $student->date_of_birth,
-                'gender' => $student->gender,
-            ]);
+        // eager load class
+        $children = $parent->students()->with('class')->get()->map(fn($student) => [
+            'id' => $student->id,
+            'registration_no' => $student->registration_no,
+            'first_name' => $student->first_name,
+            'last_name' => $student->last_name,
+            'email' => $student->email,
+            'phone' => $student->phone,
+            'date_of_birth' => $student->date_of_birth,
+            'gender' => $student->gender,
+            'class_id' => $student->class_id,   // direct column
+            'class_name' => $student->class?->name, // if you want class name too
+        ]);
 
-            return response()->json(['success' => true, 'data' => $children]);
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch children: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Failed to fetch children'], 500);
-        }
+        return response()->json(['success' => true, 'data' => $children]);
+    } catch (\Exception $e) {
+        Log::error('Failed to fetch children: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to fetch children'], 500);
     }
+}
+
 
     /**
      * GET /students/{id}/attendance
