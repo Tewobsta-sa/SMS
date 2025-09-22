@@ -13,6 +13,7 @@ class Assignment extends Model
         'teacher_id',
         'class_id',
         'section_id',
+        'subject_id',
         'title',
         'description',
         'due_date',
