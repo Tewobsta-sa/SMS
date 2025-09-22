@@ -33,6 +33,9 @@ class FullTeacherSeeder extends Seeder
             ['email' => 'teacher@example.com'],
             ['name' => 'Mr. John Doe', 'password' => Hash::make('password')]
         );
+        if (!$teacherUser->hasRole('teacher')) {
+            $teacherUser->assignRole('teacher');
+        }
 
         // 3. Create teacher
         $teacher = Teacher::firstOrCreate(
