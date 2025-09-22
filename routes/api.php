@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Api\ParentController;
+use App\Http\Controllers\Api\TeacherController;
 
 Route::get('/test', function () {
     return response()->json(['status' => 'api.php is working']);
@@ -29,6 +31,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/teacher-dashboard', function () {
             return response()->json(['message' => 'Welcome to the teacher dashboard!']);
         });
+
+        Route::prefix('teacher')->group(function () {
+            Route::get('/me/classes', [TeacherController::class, 'getMyClasses']);
+            Route::get('/classes/{classId}/roster', [TeacherController::class, 'getClassRoster']);
+            Route::post('/classes/{classId}/attendance', [TeacherController::class, 'markAttendance']);
+            Route::get('/classes/{classId}/assignments', [TeacherController::class, 'getAssignmentsByClass']);
+            Route::post('/classes/{classId}/assignments', [TeacherController::class, 'createAssignment']);
+            Route::post('/classes/{classId}/grades', [TeacherController::class, 'enterGrades']);
+            Route::post('/classes/{classId}/announcements', [TeacherController::class, 'createAnnouncement']);
+        });
     });
 
     Route::middleware('role:student')->group(function () {
@@ -38,26 +50,14 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-use App\Http\Controllers\Api\TeacherController;
 
-Route::middleware(['auth:sanctum'])->prefix('teacher')->group(function () {
 
-    Route::get('/me/classes', [TeacherController::class, 'getMyClasses']);
-
-    Route::get('/classes/{classId}/roster', [TeacherController::class, 'getClassRoster']);
-
-    Route::post('/classes/{classId}/attendance', [TeacherController::class, 'markAttendance']);
-
-    // 4. Assignments
-    Route::get('/classes/{classId}/assignments', [TeacherController::class, 'getAssignmentsByClass']);
-    Route::post('/classes/{classId}/assignments', [TeacherController::class, 'createAssignment']);
-
-    // 5. Grades
-    Route::post('/classes/{classId}/grades', [TeacherController::class, 'enterGrades']);
-
-    // 6. Announcements
-    Route::post('/classes/{classId}/announcements', [TeacherController::class, 'createAnnouncement']);
-
+Route::middleware(['auth:sanctum'])->prefix('parent')->group(function () {
+    Route::get('/me/children', [ParentController::class, 'getMyChildren']);
+    Route::get('/students/{id}/attendance', [ParentController::class, 'getStudentAttendance']);
+    Route::get('/students/{id}/grades', [ParentController::class, 'getStudentGrades']);
+    Route::get('/students/{id}/assignments', [ParentController::class, 'getStudentAssignments']);
+    Route::get('/classes/{classId}/announcements', [ParentController::class, 'getClassAnnouncements']);
 });
 
     Route::post('/payments/init', [PaymentController::class, 'initialize'])->name('payment.init');
