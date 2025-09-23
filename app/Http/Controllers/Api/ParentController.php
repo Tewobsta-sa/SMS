@@ -23,27 +23,27 @@ class ParentController extends Controller
     public function getMyChildren(): JsonResponse
 {
     try {
-        $parent = $this->getCurrentParent();
+    $parent = $this->getCurrentParent();
 
-        // eager load class
-        $children = $parent->students()->with('class')->get()->map(fn($student) => [
-            'id' => $student->id,
-            'registration_no' => $student->registration_no,
-            'first_name' => $student->first_name,
-            'last_name' => $student->last_name,
-            'email' => $student->email,
-            'phone' => $student->phone,
-            'date_of_birth' => $student->date_of_birth,
-            'gender' => $student->gender,
-            'class_id' => $student->class_id,   // direct column
-            'class_name' => $student->class?->name, // if you want class name too
-        ]);
+    // eager load class AND user
+    $children = $parent->students()->with(['class', 'user'])->get()->map(fn($student) => [
+        'id' => $student->id,
+        'registration_no' => $student->registration_no,
+        'name' => $student->user?->name,    // single name field
+        'email' => $student->user?->email,
+        'phone' => $student->user?->phone,
+        'date_of_birth' => $student->date_of_birth,
+        'gender' => $student->gender,
+        'class_id' => $student->class_id,
+        'class_name' => $student->class?->name,
+    ]);
 
-        return response()->json(['success' => true, 'data' => $children]);
-    } catch (\Exception $e) {
-        Log::error('Failed to fetch children: ' . $e->getMessage());
-        return response()->json(['success' => false, 'message' => 'Failed to fetch children'], 500);
-    }
+    return response()->json(['success' => true, 'data' => $children]);
+} catch (\Exception $e) {
+    Log::error('Failed to fetch children: ' . $e->getMessage());
+    return response()->json(['success' => false, 'message' => 'Failed to fetch children'], 500);
+}
+
 }
 
 

@@ -296,7 +296,8 @@ foreach ($finalGrades as $studentId => $subjects) {
         }
 
         $finalPercentage = $totalWeight ? ($weightedSum / $totalWeight) : 0;
-
+        $sectionId = $grades[0]->section_id;
+        
         Grade::updateOrCreate(
             ['student_id' => $studentId, 'subject_id' => $subjectId, 'is_final' => true],
             [
@@ -308,6 +309,7 @@ foreach ($finalGrades as $studentId => $subjects) {
                 'grade_letter' => $this->calculateGradeLetter($finalPercentage),
                 'teacher_id' => $teacher->id,
                 'school_id' => $teacher->school_id,
+                'section_id' => $sectionId, 
                 'class_id' => $classId,
                 'is_final' => true,
             ]

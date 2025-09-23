@@ -14,10 +14,31 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasRoles, HasApiTokens;
 
     protected $fillable = [
-        'name','email','password','phone','address','profile_picture_url','school_id','role','is_active'
+        'school_id',
+        'name',
+        'email',
+        'password',
+        'phone',
+        'meta',
+        'status',
     ];
 
-    protected $hidden = ['password','remember_token'];
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'meta' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
+    /**
+     * Relationships
+     */
 
     // relationships
     public function student()
