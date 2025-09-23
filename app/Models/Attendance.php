@@ -13,13 +13,11 @@ class Attendance extends Model
         'student_id',
         'class_id',
         'section_id',
-        'subject_id',
         'teacher_id',
         'school_id',
         'date',
         'status',
         'remarks',
-        'marked_by',
     ];
 
     public function student()

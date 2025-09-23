@@ -11,13 +11,11 @@ return new class extends Migration {
             $table->foreignId('student_id')->constrained()->cascadeOnDelete();
             $table->foreignId('class_id')->constrained('school_classes')->cascadeOnDelete();
             $table->foreignId('section_id')->constrained('sections')->cascadeOnDelete();
-            $table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
             $table->foreignId('teacher_id')->constrained('teachers')->cascadeOnDelete();
             $table->foreignId('school_id')->constrained()->cascadeOnDelete();
             $table->date('date');
             $table->enum('status', ['present', 'absent', 'late', 'excused']);
             $table->string('remarks')->nullable();
-            $table->foreignId('marked_by')->constrained('users');
             $table->timestamps();
         });
     }
